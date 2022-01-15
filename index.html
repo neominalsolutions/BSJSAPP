@@ -42,14 +42,16 @@
       <div class="row">
         <div class="col">
           <div class="input-group mb-3 mt-3">
-            <input type="text" class="form-control" placeholder="Search" />
+            <input onkeyup="Search(event.target.value)" type="text" class="form-control" placeholder="Search" />
             <button class="btn btn-success" type="submit">Ara</button>
           </div>
         </div>
       </div>
       <div class="row d-flex justify-content-center">
         <div class="col-4">
+          <!-- id si todoText olan input içerisindeki value değeri oku yani yazılan değeri -->
           <input
+            id="todoText"
             type="text"
             class="form-control"
             placeholder="Yapılacak"
@@ -57,119 +59,98 @@
           />
         </div>
         <div class="col-2">
-          <button class="btn btn-secondary">Ekle</button>
+          <!-- onclik yapıldığında AddNewItem diye bir fonksiyon çalışacak. ve ul div içerisine bir li item ekleyeceğiz. -->
+          <button onclick="AddNewItem()" class="btn btn-secondary">Ekle</button>
         </div>
       </div>
 
       <div class="row mt-3">
         <div class="col">
-          <ul class="list-group" id="todos">
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center"
-            >
-              <span>Item -1</span>
-
-              <div class="d-flex align-items-center">
-                <label class="form-check-label me-2" for="mySwitch"
-                  ><b>Durum :</b>
-                </label>
-                <div class="form-check form-switch mb-0">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="mySwitch"
-                    name="darkmode"
-                    value="yes"
-                    checked
-                  />
-                </div>
-                <button class="btn btn-danger">Sil</button>
-              </div>
-            </li>
-
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center"
-            >
-              <span>Item -2</span>
-
-              <div class="d-flex align-items-center">
-                <label class="form-check-label me-2" for="mySwitch"
-                  ><b>Durum :</b>
-                </label>
-                <div class="form-check form-switch mb-0">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    id="mySwitch"
-                    name="darkmode"
-                    value="yes"
-                    checked
-                  />
-                </div>
-                <button class="btn btn-danger">Sil</button>
-              </div>
-            </li>
-          </ul>
+          <ul class="list-group" id="todos"></ul>
         </div>
       </div>
     </div>
+
+    
+
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
 
-        // fetch('url').then((response) => response.json()).then((data) => {
-        //     console.log('data', data);
-        // })
+      // keyup eventimiz bir input elementin içerisine birşey yazdığımızda ve backspace ile birşey sildiğimizde her iki durumda da tetiklenir bu sebeple search işlemlerinde biz keyup eventini tercih ederiz.
 
-        // fetch api js ile bu veri kaynağından veri çekmemizi sağlıyor.
-        // ilk then çekilen veri farklı formatlarda xml json html vs olabileceği için onu js formatı olan json çeviriyoruz
-        // ikinci then de ise json çevrilmiş olan verimizi yakalıyoruz.
-        // eğer veri çekme işlemi sırasında bir hata meydana gelirse bu hata kodunuda catch ile yakalıyoruz.
-        // https://jsonplaceholder.typicode.com/todos url verildiyse zaten data vardır.
-      fetch("https://jsonplaceholder.typicode.com/todos")
-        .then((response) => response.json())
-        .then((json) => {
+      // onchange işlemi bir inputta bir şey değiştirdikten sonra inputtan tab ile çıkarsak yada input içerisindeyken başka bir element üzerine geçersek tetiklenir. Son kullanıcılar için kötü bir kullanım deneyimi yaratır. Bu sebple onkeyup eventi tercih edilir.
 
-            // git bu json dizisi içerisinde foreach ile dön
+      function Search(value){
+        console.log('search', value);
+        // alert('value : ' + value );
+        // console.log('data', data);
 
-            const todoListElement = document.getElementById('todos');
+        // alert('value : ' + value.toLowerCase());
+        // toLowerCase string bir ifadeyi küçük harfe çeviriyor.
+        // item.title.toLowerCase() listedeki her bir değeride bu küçük harfe çeviriyor.
+
+        let filteredData = data.filter(item => item.title.toLowerCase().includes(value.toLowerCase())); // veri filtrelemek için filter denilen bir method kullandık.
+
+        console.log('filteredData',filteredData)
+
+        const todoListElement = document.getElementById("todos");
+
+        todoListElement.innerHTML = ""; // içini temizle
+
+        let allLiElement = "";
+
+        filteredData.forEach((todoItem) => {
+            let listElement = `<li id="item-${todoItem.id}"class="list-group-item d-flex justify-content-between align-items-center"><span>Id: ${todoItem.id} - ${todoItem.title}</span><div class="d-flex align-items-center"><label class="form-check-label me-2" for="mySwitch"><b>Durum :</b></label><div class="form-check form-switch mb-0"><input class="form-check-input"type="checkbox" id="mySwitch-${todoItem.id}" name="darkmode"value="yes" onchange='ChangeStatus(${todoItem.id})' ${todoItem.completed == true ? "checked" : ""} /></div><button onclick='Delete(${todoItem.id})' class="btn btn-danger">Sil</button></div></li>`;
+            allLiElement = allLiElement + listElement;
+          });
+          // Delete function ile silme işlemi yapacağız sileceğimiz id yi Delete function listeyi çekerken söyledik.
+          // event.target.checked ile bir nesnenin bir checkbox seçili olup olmadığını true yada false olarak yakalarız.
+          todoListElement.innerHTML = allLiElement;
+
+      }
 
 
-            // const array = [1,24,435,234];
-            // const persons = [{name:'ali'},{name:'can'}]
+      var data = []; // global değişken oldu
+      var recordCount = 0; // fonksiyonlar ile aynı seviyede bir var tipinde global değişken yaptım. global değişkenleri javascriptte var olarak tanımlıyoruz. local değişkenler için const veya let kullanabiliriz.
 
-            // for (let index = 0; index < array.length; index++) {
-            //     const element = array[index];
-                
-            // }
+      function AddNewItem() {
+        // local değişken fonsiyon içerisinde kalan değişken.
+        // local değişkenlere sadece kullanıldığı fonsiyon içerisinde erişebilir.
+        const todoElement = document.getElementById("todoText");
+        const todoValue = todoElement.value.trim();
+        // trim bir değerin boşluklarını yani önündeki ve arkasındaki boşlukları alır. "    ali can  =>   ", "ali can" => "        " => ""
+
+        console.log("todoValue", todoValue);
+
+        recordCount = recordCount + 1; // 201, 202, 203, 204
+
+       
+
+        // todo value boş değilse ekle
+        if (todoValue != "") {
+  
+          // input elementlerin değerleri value ile okunur.
+          // eğer bu bir div gibi bir element ise form elemanı değilse değeri textContent veya innerText ile okuyoruz.
+
+          // api fetch at dönen result göre eğer ok 200 result döners o zaman li elementi ekle. http post ile göndeririz.
+          //  return  id:202, title:test2 =>
 
 
-            // for (const person of persons) {
-            //     person.name
-            // }
+          // global olan data nesnesine bir eleman ekledik. bu elemanın sayesinde artık aramada kendi eklediğimizide filtreleyebiliriz.
+          data.push({
+          completed:false,
+          title:todoValue,
+          id: recordCount,
+          userıd:1
+        });
 
-
-            // persons.forEach(person => {
-            //     person.name
-            // })
-
-           
-
-            json.forEach(todoItem => {
-
-                // let check = '';
-
-                // if(todoItem.completed == true)
-                //     check = 'checked';
-          
-                // ${check}
-                
-                // javascript backtick ``
-              const listElement = `<li
+          let listElement = `<li id="item-${recordCount}"
               class="list-group-item d-flex justify-content-between align-items-center"
             >
-              <span>${todoItem.title}</span>
+              <span>${todoValue}</span>
 
               <div class="d-flex align-items-center">
                 <label class="form-check-label me-2" for="mySwitch"
@@ -182,26 +163,143 @@
                     id="mySwitch"
                     name="darkmode"
                     value="yes"
-                    ${todoItem.completed == true ? 'checked':''} 
-               
                   />
                 </div>
-                <button class="btn btn-danger">Sil</button>
+                <button onclick='Delete(${recordCount})' class="btn btn-danger">Sil</button>
               </div>
             </li>`;
 
-                todoListElement.innerHTML += listElement;
+          const todosElement = document.getElementById("todos");
+          todosElement.innerHTML = listElement + todosElement.innerHTML;
+          // html source değiştirerek sayfanın güncellenmesini sağladık.
+          // alert(todoValue);
+      } else {
+        alert('boş değer giremezsiniz!')
+      }
 
-            });
+    }
 
 
-            // yukarıdaki örnek bir ternary if kullanı yani duruma göre if else blokları ile string elementin değerini değiştiriyoruz.
+      function Delete(id){
+        
+        var result = confirm('kaydı silmek istediğinize emin misiniz?');
+    
 
+        // açılır pencereden evet butonuna basılmış ise 
+        if(result == true) {
+          // kaydı silelim ekrandan bu kaydı götürelim.
+
+
+          // 1. yöntem kaydı silerken filtere yöntemini kullanmak
+          // data =  data.filter(x=> x.id != id); // silinecek idsine eşit olmayanları tekrar filtrele ve data yı güncelle dedik.
+
+
+          // 2.yöntem  indeksinden kaydı silmek
+          const deleteIndex = data.findIndex(x=> x.id == id);
+          console.log('deleteIndex', deleteIndex);
+          // splice methodu ile indeksinden ilgili kaydı silebiliriz.
+          // data = data.splice(deleteIndex,1);
+
+          data.splice(deleteIndex,1); // ilgili nesneyi sildk.
+
+
+
+
+          var liElement = document.getElementById(`item-${id}`);
+          //liElement.style.display = 'none'; // silinen elementin ekranda gizle htmlden kaldırmaz sadece css ile gizli yapar.
+          liElement.remove(); // elementin htmlden kaldırılmasını sağlar.
+
+        } else {
+          alert('silme işlemi iptal edildi!')
+        }
+
+
+      }
+
+      // fetch('url').then((response) => response.json()).then((data) => {
+      //     console.log('data', data);
+      // })
+
+      // fetch api js ile bu veri kaynağından veri çekmemizi sağlıyor.
+      // ilk then çekilen veri farklı formatlarda xml json html vs olabileceği için onu js formatı olan json çeviriyoruz
+      // ikinci then de ise json çevrilmiş olan verimizi yakalıyoruz.
+      // eğer veri çekme işlemi sırasında bir hata meydana gelirse bu hata kodunuda catch ile yakalıyoruz.
+      // https://jsonplaceholder.typicode.com/todos url verildiyse zaten data vardır.
+      fetch("https://jsonplaceholder.typicode.com/todos")
+        .then((response) => response.json())
+        .then((json) => {
+          console.log("data", json);
+
+          recordCount = json.length;
+          data = json; // json local değişken değerini global olan data değişkenine attık.
+
+          console.log('recordCount',recordCount);
+
+          // git bu json dizisi içerisinde foreach ile dön
+
+          const todoListElement = document.getElementById("todos");
+
+          // const array = [1,24,435,234];
+          // const persons = [{name:'ali'},{name:'can'}]
+
+          // let names = ['ali','ahmet','mehmet'];
+          // let allNames = '';
+
+          // for (let index = 0; index < names.length; index++) {
+
+          //    allNames += names[index] + ' , ';
+          // }
+
+          // alert(allNames);
+
+          // document.body.innerHTML = allNames;
+
+          // for (const person of persons) {
+          //     person.name
+          // }
+
+          // persons.forEach(person => {
+          //     person.na, me
+          // })
+
+          let allLiElement = "";
+
+          json.forEach((todoItem) => {
+            // let check = '';
+            // if(todoItem.completed == true)
+            //     check = 'checked';
+            // ${check}
+            // ${todoItem.completed == true ? 'checked':''}
+            // sadece true yada false göre işlem yapıcaksak yani 2 koşul var evet veya hayır bu durumda yaygın ternaryif
+            // javascript backtick ``
+            // string template oluşturduk.
+            // item-1, item-2, item-3
+            let listElement = `<li id="item-${todoItem.id}"class="list-group-item d-flex justify-content-between align-items-center"><span>Id: ${todoItem.id} - ${todoItem.title}</span><div class="d-flex align-items-center"><label class="form-check-label me-2" for="mySwitch"><b>Durum :</b></label><div class="form-check form-switch mb-0"><input class="form-check-input"type="checkbox" id="mySwitch-${todoItem.id}" name="darkmode"value="yes" onchange='ChangeStatus(${todoItem.id})' ${todoItem.completed == true ? "checked" : ""} /></div><button onclick='Delete(${todoItem.id})' class="btn btn-danger">Sil</button></div></li>`;
+            allLiElement = allLiElement + listElement;
+          });
+          // Delete function ile silme işlemi yapacağız sileceğimiz id yi Delete function listeyi çekerken söyledik.
+          // event.target.checked ile bir nesnenin bir checkbox seçili olup olmadığını true yada false olarak yakalarız.
+          todoListElement.innerHTML = allLiElement;
+          // yukarıdaki örnek bir ternary if kullanı yani duruma göre if else blokları ile string elementin değerini değiştiriyoruz.
         })
         .catch((error) => {
-            alert('Hata oluştu !')
+          alert("Hata oluştu !");
         }); // JSON javascript Object Notation
 
+        function ChangeStatus(id){
+
+          var checkbox = document.getElementById(`mySwitch-${id}`);
+          var isChecked = checkbox.checked; // checked değeri bize true yada false döner. bir checkbox elemntinin seçili olup olmadığını gösterir.
+          const liElement = document.getElementById(`item-${id}`);
+
+          if(isChecked){
+            liElement.setAttribute('style','background-color:green; color:white');
+          }
+          else {
+            // seçili olduğunda verilmiş olan stili ise geri al.
+            liElement.removeAttribute('style');
+          }
+        }
 
     </script>
   </body>
