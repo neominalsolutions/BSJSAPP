@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm bg-light navbar-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <img
+            src="/assets/images/ba.jpg"
+            alt="Avatar Logo"
+            style="width: 40px"
+            class="rounded-pill"
+          />
+        </a>
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#">Makaleler</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="#">Yapılacaklar</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Albümler</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Kullanıcılar</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col">
+          <div class="input-group mb-3 mt-3">
+            <input
+              id="searchInput"
+              type="text"
+              class="form-control"
+              placeholder="Search"
+            />
+            <button class="btn btn-success" type="submit">Ara</button>
+          </div>
+        </div>
+      </div>
+      <div class="row d-flex justify-content-center">
+        <div class="col-4">
+          <!-- id si todoText olan input içerisindeki value değeri oku yani yazılan değeri -->
+          <input
+            id="todoText"
+            type="text"
+            class="form-control"
+            placeholder="Yapılacak"
+            name="text"
+          />
+        </div>
+        <div class="col-2">
+          <!-- onclik yapıldığında AddNewItem diye bir fonksiyon çalışacak. ve ul div içerisine bir li item ekleyeceğiz. -->
+          <button onclick="AddNewItem()" class="btn btn-secondary">Ekle</button>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col">
+          <ul class="list-group" id="todos"></ul>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+  var data = []; // gelen verileri arama işlemi için global değişken olan data içerisine atıcaz. böyle arama ekleme işlemleri için bu data nesnesine ekleme çıkarma ve filtereleme işlemlerinden geçireceğiz.
+
+  // sayfa ilk yüklendiğinde
+  $(document).ready(function () {
+    // bu kısma jquery kodları yazabiliriz.
+
+    $.ajax({
+      method: "GET",
+      url: "https://jsonplaceholder.typicode.com/todos",
+      success: function (json) {
+        // datayı json datayı global olan data değişkenine aktarırız.
+        // sayfaya todos id sayip olan ul içerisine li templatemizi html olarak set ederiz.
+        // böylece sayfada listelenmiş olur. jquery html() methodu kullanacağız.
+        // aynı zamanda çektiğimiz veriler içerisinde dönerken javascript foreach yerine $.each yani jquery foreach kullanacağız.
+        data = [...json]; // data = json arasında fark yok 2. yazım şekli olan bir dizdeki elemanların spread operatörü ile başka bir diziye kopyalanmasını sağlamış olduk.Dikkat etmemiz gerek nokta [... array] kullanabilmek için bir diziye ihtiyacımız var.
+        // var obj = {... obj2}; yandaki kullanıp spread operatörünün object tipleri için kullanımıdır.
+
+        let allLiElement = "";
+
+        // console.log('data', data);
+
+        $.each(data, (index, item) => {
+          // jquery de $.each ile bir nesne içerisinde javascript forEach yapabilirsiniz. diğer örenekte js ile yaptığımız için forEach yönetimi kullandık.
+          // index dizinin indeksici anlamına gelir , 0,1,2, dizi içerisindeki item kaçıncı indeks konumunda olduğunu döndürür.
+          // item ise bize dizi içerisinde {title,compled,id} olan tek bir objeyi döndürür.
+          // html dinamik içerik oluşturuken `` kullanımların hepsinde javascript kullanıyoruz. Jquery karşılığı yoktur.
+          let listElement = `<li id="item-${
+            item.id
+          }"class="list-group-item d-flex justify-content-between align-items-center"><span>Id: ${
+            item.id
+          } - ${
+            item.title
+          }</span><div class="d-flex align-items-center"><label class="form-check-label me-2" for="mySwitch"><b>Durum :</b></label><div class="form-check form-switch mb-0"><input class="form-check-input"type="checkbox" id="mySwitch-${
+            item.id
+          }" name="darkmode"value="yes" onchange='ChangeStatus(${item.id})' ${
+            item.completed == true ? "checked" : ""
+          } /></div><button onclick='Delete(${
+            item.id
+          })' class="btn btn-danger">Sil</button></div></li>`;
+
+          // console.log('listElement',listElement)
+
+          allLiElement = allLiElement.concat(listElement); // concat func ile bir string elementi arka arkaya birleştirebiliriz.
+          //allLiElement = allLiElement + listElement; dünkü kodumuz yerine kullandık. JS concat kullandık.
+        });
+
+        // console.log('allLiElement', allLiElement);
+
+        $("#todos").html(allLiElement); // jquery ile todos elementi idsine göre yakalayıp html() function ile html güncelledik.
+
+        console.log("checked");
+
+        // sayfa DOM'a basıldıktan sonra ancak yakalayabiliriz.
+        $(":checked").addClass("bg-dark"); // sayfadaki tüm checked olan checkboxları yakaladık.
+      },
+      error: function (err) {},
+    });
+  });
+
+  // JS de 2. yöntem function yazım şekli biz buna Arrow Function diyoruz.
+  // fonisyonlarımızı document ready dışına tanımlıyoruz
+  const ChangeStatus = (id) => {
+    let checked = $(`#mySwitch-${id}`).prop("checked"); // yani bu checkbox jquery checked olup olmadığı bilgisini yakalamak için prop() fonksiyonu kullanıyoruz.
+
+    console.log("checked", checked);
+
+    if (checked) {
+      $(`#item-${id}`).addClass("bg-success text-white");
+    } else {
+      $(`#item-${id}`).removeClass("bg-success text-white");
+    }
+  };
+
+  const Delete = (id) => {
+    // ilgili elementi sayfadan ok butonuna basıldığında animasyonlu olarak remove edeli fadeOut kullanacağız. // Jquery DOM
+    // datayı idsine göre kaldırmamız lazım bunuda dün splice kullandık bugünde filter ile yapalım. // JS direk değişkenle alakalı bir işlem.
+
+    const result = confirm("silmek istediğinize emin misini?"); // mesaj işlemleri için jquery tarafında kendisine ait bir çözüm ancak sweetalert gibi bir kütüphane kullanarak bu mesaj işlemlerini yapabiliriz.
+
+    if (result) {
+      $(`#item-${id}`).fadeOut(2000, function () {
+        // display none yapması yeterli değil sayfadan yani html'den remove etmemiz lazım bu sebeple
+        $(this).remove(); // jquery this ise şuanki elemente bağlanıp onu htmlden remove ettik.
+      }); // 2 saniyede sil. display none yapıyordu. Animasyon yani effect için kullandık.
+      data = data.filter((x) => x.id != id); // data dizisini güncelledik.
+    } else {
+      alert("silme işlemi iptal edildi !");
+    }
+  };
+
+  const AddNewItem = () => {
+    let value = $("#todoText").val().trim(); // jquery ile input değerini okuduk.
+    // trim ile boşluklarını aldık.
+    // let recordId = data.length + 1; // daha çok tercih ettiğimiz bir yazım şekli var
+
+    if (value != "") {
+      // boş değilse yada boş string değilse ekleme işlemi yapacaktık.
+
+      // burada ise var olan bir elemente append yada prepend ile bir html element ekleme işlemi yapıcaz. Yeni eklenen sayfada en üste görüneceği için prepend tercih edeceğiz.
+      // birde eklenen verinin global olan data değişkenine atılması içinde farklı bir şekilde spread operatörünü kullanarak ekleme yapacağız. dün push ile bir dizi içerisine ekleme işlemi yapmıştık.
+
+      let recordId = data.length; // recordId bulabilmek için data dizisinin içindeki adet saysını length ile al (200) kayıt
+      console.log("data.length1", recordId);
+      recordId++;
+      console.log("data.length2", recordId);
+      //recordId+=2; // kayıt saysını 1 arttır kodu. 2 şekli artırma kodu
+
+      // item.title alanı value
+      // item.id = alanı recordId
+      let listElement = `<li id="item-${recordId}"class="list-group-item d-flex justify-content-between align-items-center"><span>Id: ${recordId}-${value}</span><div class="d-flex align-items-center"><label class="form-check-label me-2" for="mySwitch"><b>Durum :</b></label><div class="form-check form-switch mb-0"><input class="form-check-input"type="checkbox" id="mySwitch-${recordId}" name="darkmode"value="yes" onchange='ChangeStatus(${recordId})' </div><button onclick='Delete(${recordId})' class="btn btn-danger">Sil</button></div></li>`;
+
+      $("#todos").prepend(listElement); // ilk eleman olarak todos içerisine ekledik.
+
+      let newItem = {
+        id: recordId,
+        title: value,
+        completed: false,
+        userId: 1,
+      };
+
+      data = [newItem, ...data]; // dün push kullanmıştık bugün ise spread operatörü ile ekleme işlemini dataya yaptık. bunu aramalarda data üzerinden arama yapacağımız içinm düzgün çalışsın aramamız diye data nesnesine de kayıt ekletiyorduk.
+      // yukarıdaki yazım şeklinde ilk değer [newItem,... array] formatı yeni eklenenin dizini ilk elemanına ekler fakat bunun yerine yeni eklenen değeri dizinin son elemanına eklemek için [...array, newItem] formatını kullanırız.
+
+      // data = [...data, newItem];
+      console.log("data", data);
+    } else {
+      alert("boş değer ekleyemezsiniz !");
+    }
+  };
+
+  $("#searchInput").on("keyup", function () {});
+
+  // Jquery ile html elementin keyUp eventine eriştik.
+  $("#searchInput").keyup(function () {
+    // şuan searchInput ile çalıştığımıza göre this ile aktif olan inputa bağlanabilir.
+    let value = $(this).val(); // jquery ile input değerini okuduk.
+
+    //  alert('aranan : ' + value);
+
+    // const filtered = data.filter(x=> x.title.toLowerCase().includes(value.toLowerCase()));
+
+    // i flag ile bir aranacak değer küçük büyük harf duyarsız olur yani aranacak değeri küçük yada büyük harfe çevirmenize gerek kalmak bunu kendisi yapar. test func ile bu value değerinin title içerisinde olup olmadığını kontrol eder. true yada false ifade döndürür. includes içerenleri bulurken test ise bu value değerinin title içerenleri getirmemiz sağlar. yani includes gibi çalışmış oluruz.
+    // 2. yöntem ile aram yaptık
+    const filtered = data.filter((x) => new RegExp(value, "i").test(x.title));
+
+    $("#todos").empty(); // html kaynağının içini boşalt
+
+
+    let allLiElement = "";
+
+    $.each(filtered, (index, item) => {
+
+      let listElement = `<li id="item-${ item.id}"class="list-group-item d-flex justify-content-between align-items-center"><span>Id: ${item.id} - ${ item.title}</span><div class="d-flex align-items-center"><label class="form-check-label me-2" for="mySwitch"><b>Durum :</b></label><div class="form-check form-switch mb-0"><input class="form-check-input"type="checkbox" id="mySwitch-${item.id}" name="darkmode"value="yes" onchange='ChangeStatus(${item.id})' ${item.completed == true ? "checked" : ""} /></div><button onclick='Delete(${
+        item.id})' class="btn btn-danger">Sil</button></div></li>`;
+      allLiElement = allLiElement.concat(listElement);
+    });
+
+    $('#todos').html(allLiElement); // html filtrelenmiş değerlere göre güncelleme işlemi yaptık.
+
+  });
+
+  /* Default Function yazım şekli
+     function ChangeStatus(id) {
+     }
+
+     */
+
+  // AJAX ile veri çekme yöntemimiz
+
+  //     $(document).ready(function(){
+  //   // fetch yerine tercih edebiliriz. Default hiç bir şey tanımlamazsak GET çalışır. Formdan bilgi gönderirken POST kullanıyoruz. API ye data gönderme işlemlerinde kullanırız. Fetch hem POST hem GET destekler. POST işlemi delete, addnewItem, update gibi veri kaynağında güncelleme, ekleme ve silme gibi işlemleri yapar. GET ise sadece veri kaynağında verilerin çekilmesi ile ilgilenir.
+  //   $.ajax({
+  //     method:'GET', // veri çekme işlemlerinde HTTPGET kullanılır
+  //     url:'https://jsonplaceholder.typicode.com/todos',
+  //     success: function(json){
+  //        console.log('data', json)
+  //        // apide hata yoksa verilerimeze ulaştığımız kısım.
+  //     },
+  //     error:function(error) {
+  //     	console.log('err', error);
+  //         // api de bir hata oluştuğunda çalışan kısım
+  //     }
+  //   })
+  // });
+</script>
